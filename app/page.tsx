@@ -40,9 +40,10 @@ export default async function Home() {
                             How are you feeling today?
                         </Typography>
                     </Stack>
-                    <Box className="flex justify-center align-center gap-7">
-                        <MoodSelector emotions={emotions} currentMood={todayMood?.mood}/>
-                    </Box>
+                    <MoodSelector
+                        emotions={emotions}
+                        currentMood={todayMood?.mood}
+                    />
                 </Stack>
             </Box>
         </Container>

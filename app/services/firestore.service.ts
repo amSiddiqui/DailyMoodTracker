@@ -1,3 +1,4 @@
+"use server";
 import { db } from "@/app/firebase.config";
 import { MoodEntry } from "@/app/models/Mood";
 import { Timestamp, addDoc, collection, getDocs, query, where } from "firebase/firestore";
@@ -20,6 +21,7 @@ export const getMoods = async (): Promise<MoodEntry[]> => {
 
 export const getMood = async (date: Date): Promise<MoodEntry | undefined> => {
     console.log('Getting mood for date: ', date.toDateString());
+    date.setHours(0, 0, 0, 0);
     try {
         const q = query(collection(db, collectionName), where("date", "==", Timestamp.fromDate(date)));
         const querySnapshot = await getDocs(q);
@@ -37,15 +39,27 @@ export const getMood = async (date: Date): Promise<MoodEntry | undefined> => {
     }
 }
 
-export const addMoods = async (mood: string, date: Date): Promise<string | undefined> => {
+
+export const saveMoodSA = async (formData: FormData): Promise<void> => {
     try {
-        const newEntry: Omit<MoodEntry, "id"> = {
+        const mood = formData.get('mood') as string;
+        const date = new Date(formData.get('date') as string);
+        date.setHours(0, 0, 0, 0);
+        await addMood(mood, date);
+    } catch (error) {
+        console.log('Error saving mood: ', error);
+    }
+}
+
+
+export const addMood = async (mood: string, date: Date): Promise<void> => {
+    try {
+        await addDoc(collection(db, collectionName), {
             mood,
             date: Timestamp.fromDate(date)
-        };
-        const docRef = await addDoc(collection(db, collectionName), newEntry);
-        return docRef.id;
-    } catch (err) {
-        console.log('Error adding document: ', err);
+        });
+    } catch (error) {
+        console.log('Error adding document: ', error);
     }
+
 };
