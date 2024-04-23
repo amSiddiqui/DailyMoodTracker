@@ -1,7 +1,7 @@
 "use server";
 import { db } from "@/app/firebase.config";
 import { MoodEntry } from "@/app/models/Mood";
-import { Timestamp, addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { Timestamp, addDoc, collection, getDocs, query, where, doc, setDoc } from "firebase/firestore";
 
 const collectionName = "mood";
 
@@ -51,15 +51,16 @@ export const saveMoodSA = async (formData: FormData): Promise<void> => {
     }
 }
 
-
 export const addMood = async (mood: string, date: Date): Promise<void> => {
     try {
-        await addDoc(collection(db, collectionName), {
-            mood,
-            date: Timestamp.fromDate(date)
-        });
+        date.setHours(0, 0, 0, 0);
+        const existingMood = await getMood(date);
+        if (existingMood && existingMood.id){
+            await setDoc(doc(db, collectionName, existingMood.id), { mood, date: Timestamp.fromDate(date) });
+        } else {
+            await addDoc(collection(db, collectionName), { mood, date: Timestamp.fromDate(date) });
+        }
     } catch (error) {
-        console.log('Error adding document: ', error);
+        console.log("Error adding or updating document: ", error);
     }
-
 };
